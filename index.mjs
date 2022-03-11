@@ -12,6 +12,12 @@ io.on("connection", (socket) => {
   const { id } = socket;
   console.log('socket connected.', id);
 
+  socket.broadcast.emit('register', id);
+
+  socket.on("disconnect", () => {
+    socket.broadcast.emit('unregister', id);
+  });
+
   socket.on('data', (data) => {
     socket.broadcast.emit('lidar-data', { id, data });
   });
