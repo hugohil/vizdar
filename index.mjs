@@ -9,10 +9,11 @@ const io = new Server(httpServer, { /* options */ });
 app.use(express.static('app'));
 
 io.on("connection", (socket) => {
-  console.log('socket connected.', socket.id);
+  const { id } = socket;
+  console.log('socket connected.', id);
 
   socket.on('data', (data) => {
-    socket.broadcast.emit('lidar-data', data);
+    socket.broadcast.emit('lidar-data', { id, data });
   });
 });
 httpServer.listen(3000);
