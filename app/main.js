@@ -5,7 +5,7 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const context = canvas.getContext('2d');
 
-const pane = new Tweakpane.Pane();
+const pane = new Tweakpane.Pane({ title: 'opts' });
 const params = {
   offsetX: 0,
   offsetY: 0,
@@ -17,6 +17,15 @@ pane.addInput(params, 'offsetX', { min: -(canvas.width / 2), max: (canvas.width 
 pane.addInput(params, 'offsetY', { min: -(canvas.height / 2), max: (canvas.height / 2) });
 pane.addInput(params, 'scale', { min: 1, max: 30 });
 pane.addInput(params, 'rotation', { min:-360, max: 360 });
+const saveButton = pane.addButton({ title: 'Save'}).on('click', () => {
+  preset = pane.exportPreset();
+  localStorage.setItem('preset', JSON.stringify(preset));
+});
+
+let preset = localStorage.getItem('preset');
+try {
+  pane.importPreset(JSON.parse(preset));
+} catch (ignore) {}
 
 let lidar = [];
 socket.on('lidar-data', (d) => { lidar = d; });
