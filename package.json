@@ -4,6 +4,7 @@
     "start:client": "parcel client/index.html --no-cache"
   },
   "dependencies": {
+    "@tweakpane/plugin-essentials": "^0.1.4",
     "express": "^4.17.3",
     "gammacv": "^0.5.2",
     "socket.io": "^4.4.1",
