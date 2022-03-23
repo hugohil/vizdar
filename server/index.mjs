@@ -4,7 +4,14 @@ import { Server } from 'socket.io';
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, { /* options */ });
+const io = new Server(httpServer, {
+  cors: {
+    origin: [
+      "http://127.0.0.1:1234",
+      "http://localhost:1234",
+    ]
+  }
+});
 
 app.use(express.static('app'));
 

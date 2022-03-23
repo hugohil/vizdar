@@ -1,9 +1,17 @@
 {
   "scripts": {
-    "start": "node index.mjs"
+    "start:server": "node server/index.mjs",
+    "start:client": "parcel client/index.html --no-cache"
   },
   "dependencies": {
     "express": "^4.17.3",
-    "socket.io": "^4.4.1"
+    "gammacv": "^0.5.2",
+    "socket.io": "^4.4.1",
+    "socket.io-client": "^4.4.1",
+    "tweakpane": "^3.0.7"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "parcel": "^2.4.0"
   }
 }

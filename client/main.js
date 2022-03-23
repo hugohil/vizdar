@@ -1,11 +1,14 @@
-const socket = io();
+import { io } from 'socket.io-client';
+const socket = io('http://127.0.0.1:3000');
+
+import { Pane } from 'tweakpane';
 
 const canvas = document.createElement('canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const context = canvas.getContext('2d');
 
-const pane = new Tweakpane.Pane({ title: 'opts' });
+const pane = new Pane({ title: 'opts' });
 
 let preset = localStorage.getItem('preset');
 try {
