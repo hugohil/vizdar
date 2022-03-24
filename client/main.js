@@ -14,11 +14,6 @@ const context = canvas.getContext('2d');
 
 const pane = new Pane({ title: 'opts' });
 pane.registerPlugin(EssentialsPlugin);
-const fpsGraph = pane.addBlade({
-  view: 'fpsgraph',
-  label: 'fpsgraph',
-  lineCount: 2,
-});
 
 let preset = localStorage.getItem('preset');
 try {
@@ -28,6 +23,37 @@ try {
 const saveButton = pane.addButton({ title: 'Save'}).on('click', () => {
   preset = pane.exportPreset();
   localStorage.setItem('preset', JSON.stringify(preset));
+});
+
+const fpsGraph = pane.addBlade({
+  view: 'fpsgraph',
+  label: 'fpsgraph',
+  lineCount: 2,
+});
+
+const params = {
+  exclusionZones: {},
+};
+
+pane.addButton({ title: 'add exclusion zone' }).on('click', () => {
+  const index = Object.keys(params.exclusionZones).length;
+  const folder = pane.addFolder({ title: `exclusion zone ${index + 1}` });
+  params.exclusionZones[`zone-${index}`] = {
+    pos: { x: 0, y: 0 },
+    dim: { x: 0.1, y: 0.1 },
+  };
+  folder.addInput(params.exclusionZones[`zone-${index}`], 'pos', {
+    x: { min: -1, max: 1, step: 0.01 },
+    y: { min: -1, max: 1, step: 0.01 },
+  });
+  folder.addInput(params.exclusionZones[`zone-${index}`], 'dim', {
+    x: { min: 0, max: 1, step: 0.01 },
+    y: { min: 0, max: 1, step: 0.01 },
+  });
+  folder.addButton({ title: 'remove' }).on('click', () => {
+    delete params.exclusionZones[`zone-${index}`];
+    folder.dispose();
+  });
 });
 
 let devices = {};
@@ -63,6 +89,23 @@ const render = function () {
   for (const name in devices) {
     if (!devices[name]) continue;
     devices[name].drawPointCloud(canvas, context);
+  }
+
+  for (const zone in params.exclusionZones) {
+    const { pos, dim } = params.exclusionZones[zone];
+    context.fillStyle = 'white';
+    context.fillRect(
+      ((((pos.x + 1) * 0.5) - (dim.x * 0.5)) * canvas.width),
+      ((((pos.y + 1) * 0.5) - (dim.y * 0.5)) * canvas.height),
+      (dim.x * canvas.width),
+      (dim.y * canvas.height)
+    );
+    context.strokeRect(
+      ((((pos.x + 1) * 0.5) - (dim.x * 0.5)) * canvas.width),
+      ((((pos.y + 1) * 0.5) - (dim.y * 0.5)) * canvas.height),
+      (dim.x * canvas.width),
+      (dim.y * canvas.height)
+    );
   }
 
   time++;
