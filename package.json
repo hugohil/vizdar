@@ -5,8 +5,10 @@
   },
   "dependencies": {
     "@tweakpane/plugin-essentials": "^0.1.4",
+    "compute-cosine-similarity": "^1.0.0",
     "express": "^4.17.3",
     "gammacv": "^0.5.2",
+    "smoothish": "^1.0.0",
     "socket.io": "^4.4.1",
     "socket.io-client": "^4.4.1",
     "tweakpane": "^3.0.7"

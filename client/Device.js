@@ -2,42 +2,61 @@ function d2r (deg) {
   return deg * (Math.PI / 180);
 }
 
+function lerp (value1, value2, amount) {
+  amount = amount < 0 ? 0 : amount;
+  amount = amount > 1 ? 1 : amount;
+  return value1 + (value2 - value1) * amount;
+}
+
 export default class Device {
-  constructor ({ id, canvas, pane }) {
+  constructor ({ name, canvas, pane }) {
     this.data = [];
 
     this.params = {
       offsetX: 0,
       offsetY: 0,
       scale: 10,
-      rotation: 0
+      rotation: 0,
+      smoothing: 1
     }
 
-    this.gui = pane.addFolder({ title: `device ${id}` });
+    this.gui = pane.addFolder({ title: `device ${name}` });
     this.gui.addInput(this.params, 'offsetX', {
       min: -(canvas.width / 2),
       max: (canvas.width / 2),
-      presetKey: `offsetX-${id}`
+      presetKey: `offsetX-${name}`
     });
     this.gui.addInput(this.params, 'offsetY', {
       min: -(canvas.height / 2),
       max: (canvas.height / 2),
-      presetKey: `offsetY-${id}`
+      presetKey: `offsetY-${name}`
     });
     this.gui.addInput(this.params, 'scale', {
       min: 1,
       max: 30,
-      presetKey: `scale-${id}`
+      presetKey: `scale-${name}`
     });
     this.gui.addInput(this.params, 'rotation', {
       min: -360,
       max: 360,
-      presetKey: `rotation-${id}`
+      presetKey: `rotation-${name}`
     });
+    this.gui.addInput(this.params, 'smoothing', {
+      min: 0,
+      max: 3,
+      step: 0.1,
+      presetKey: `smoothing-${name}`
+    });
+  }
+
+  updateData (data) {
+    // todo: smooth datas
+    this.data = data;
   }
 
   drawPointCloud (canvas, context) {
     context.save();
+
     context.translate(
       (canvas.width / 2) + this.params.offsetX,
       (canvas.height / 2) + this.params.offsetY

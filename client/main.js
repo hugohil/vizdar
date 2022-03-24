@@ -7,8 +7,6 @@ const socket = io('http://127.0.0.1:3000');
 import { Pane } from 'tweakpane';
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
 
-import * as gm from 'gammacv';
-
 const canvas = document.createElement('canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -33,23 +31,25 @@ const saveButton = pane.addButton({ title: 'Save'}).on('click', () => {
 });
 
 let devices = {};
-socket.on('register', (id) => {
-  console.log(`register ${id}`);
-  devices[id] = new Device({id, canvas, pane});
+socket.on('register', (name) => {
+  console.log(`register ${name}`);
+  devices[name] = new Device({name, canvas, pane});
+  try { pane.importPreset(JSON.parse(preset)); } catch (ignore) {}
 });
-socket.on('unregister', (id) => {
-  console.log(`unregister ${id}`);
-  if (devices[id]) {
-    devices[id].close();
-    delete devices[id];
+socket.on('unregister', (name) => {
+  console.log(`unregister ${name}`);
+  if (devices[name]) {
+    devices[name].close();
+    delete devices[name];
   }
 });
-socket.on('lidar-data', ({ id, data }) => {
-  if (!devices[id]) {
-    console.log(`register ${id}`);
-    devices[id] = new Device({id, canvas, pane});
+socket.on('lidar-data', ({ name, data }) => {
+  if (!devices[name]) {
+    console.log(`register ${name}`);
+    devices[name] = new Device({name, canvas, pane});
+    try { pane.importPreset(JSON.parse(preset)); } catch (ignore) {}
   }
-  devices[id].data = data;
+  devices[name].updateData(data);
 });
 
 let time = 0;
@@ -60,9 +60,9 @@ const render = function () {
   context.fillStyle = 'rgba(255, 255, 255, 0.5)';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  for (const id in devices) {
-    if (!devices[id]) continue;
-    devices[id].drawPointCloud(canvas, context);
+  for (const name in devices) {
+    if (!devices[name]) continue;
+    devices[name].drawPointCloud(canvas, context);
   }
 
   time++;
