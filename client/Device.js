@@ -17,7 +17,9 @@ export default class Device {
       offsetY: 0,
       scale: 10,
       rotation: 0,
-      smoothing: 1
+      minDistance: 500,
+      maxDistance: 2500,
+      pointSize: 5,
     }
 
     this.gui = pane.addFolder({ title: `device ${name}` });
@@ -41,20 +43,35 @@ export default class Device {
       max: 360,
       presetKey: `rotation-${name}`
     });
-    this.gui.addInput(this.params, 'smoothing', {
+    this.gui.addInput(this.params, 'minDistance', {
       min: 0,
-      max: 3,
-      step: 0.1,
-      presetKey: `smoothing-${name}`
+      max: 10000,
+      presetKey: `minDistance-${name}`
+    });
+    this.gui.addInput(this.params, 'maxDistance', {
+      min: 0,
+      max: 10000,
+      presetKey: `maxDistance-${name}`
+    });
+    this.gui.addInput(this.params, 'pointSize', {
+      min: 0,
+      max: 20,
+      presetKey: `pointSize-${name}`
     });
   }
 
   updateData (data) {
-    // todo: smooth datas
+    for (let i = data.length - 1; i >= 0; i--) {
+      if (data[i].d < this.params.minDistance || data[i].d > this.params.maxDistance) {
+        data.splice(i, 1);
+      }
+    }
     this.data = data;
   }
 
   drawPointCloud (canvas, context) {
+    const ps = this.params.pointSize;
+
     context.save();
 
     context.translate(
@@ -64,7 +81,7 @@ export default class Device {
     context.rotate(d2r(this.params.rotation));
 
     context.fillStyle = 'red';
-    context.fillRect(0, 0, 10, 10);
+    context.fillRect(-5, -5, 10, 10);
     context.fillStyle = 'black';
 
     for (let i = (this.data.length - 1); i > 0 ; i--) {
@@ -73,8 +90,19 @@ export default class Device {
       x /= this.params.scale;
       y /= this.params.scale;
 
-      context.fillRect(x, y, 3, 3);
+      context.fillRect((x - (ps * 0.5)), (y - (ps * 0.5)), ps, ps);
     }
+
+    context.beginPath();
+    context.arc(0, 0, (this.params.minDistance / this.params.scale), 0, 2 * Math.PI);
+    context.closePath();
+    context.stroke();
+
+    context.beginPath();
+    context.arc(0, 0, (this.params.maxDistance / this.params.scale), 0, 2 * Math.PI);
+    context.closePath();
+    context.stroke();
+
     context.restore();
   }
 
