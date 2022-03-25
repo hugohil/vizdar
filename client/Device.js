@@ -1,3 +1,5 @@
+import smoothish from 'smoothish';
+
 function d2r (deg) {
   return deg * (Math.PI / 180);
 }
@@ -15,49 +17,15 @@ export default class Device {
     this.params = {
       offsetX: 0,
       offsetY: 0,
-      scale: 10,
+      scale: 50,
       rotation: 0,
       minDistance: 500,
       maxDistance: 2500,
-      pointSize: 5,
+      pointSize: 2,
+      debug: true,
     }
 
-    this.gui = pane.addFolder({ title: `device ${name}` });
-    this.gui.addInput(this.params, 'offsetX', {
-      min: -(canvas.width / 2),
-      max: (canvas.width / 2),
-      presetKey: `offsetX-${name}`
-    });
-    this.gui.addInput(this.params, 'offsetY', {
-      min: -(canvas.height / 2),
-      max: (canvas.height / 2),
-      presetKey: `offsetY-${name}`
-    });
-    this.gui.addInput(this.params, 'scale', {
-      min: 1,
-      max: 30,
-      presetKey: `scale-${name}`
-    });
-    this.gui.addInput(this.params, 'rotation', {
-      min: -360,
-      max: 360,
-      presetKey: `rotation-${name}`
-    });
-    this.gui.addInput(this.params, 'minDistance', {
-      min: 0,
-      max: 10000,
-      presetKey: `minDistance-${name}`
-    });
-    this.gui.addInput(this.params, 'maxDistance', {
-      min: 0,
-      max: 10000,
-      presetKey: `maxDistance-${name}`
-    });
-    this.gui.addInput(this.params, 'pointSize', {
-      min: 0,
-      max: 20,
-      presetKey: `pointSize-${name}`
-    });
+    this.setupGUI({ canvas, pane, name });
   }
 
   updateData (data) {
@@ -80,11 +48,15 @@ export default class Device {
     );
     context.rotate(d2r(this.params.rotation));
 
-    context.fillStyle = 'red';
-    context.fillRect(-5, -5, 10, 10);
+    if (this.params.debug) {
+      context.fillStyle = 'red';
+      context.fillRect(-5, -5, 10, 10);
+    }
     context.fillStyle = 'black';
 
     for (let i = (this.data.length - 1); i > 0 ; i--) {
+      if (!this.data[i]) continue;
+
       let { x, y } = this.data[i];
 
       x /= this.params.scale;
@@ -93,20 +65,62 @@ export default class Device {
       context.fillRect((x - (ps * 0.5)), (y - (ps * 0.5)), ps, ps);
     }
 
-    context.beginPath();
-    context.arc(0, 0, (this.params.minDistance / this.params.scale), 0, 2 * Math.PI);
-    context.closePath();
-    context.stroke();
+    if (this.params.debug) {
+      context.beginPath();
+      context.arc(0, 0, (this.params.minDistance / this.params.scale), 0, 2 * Math.PI);
+      context.closePath();
+      context.stroke();
 
-    context.beginPath();
-    context.arc(0, 0, (this.params.maxDistance / this.params.scale), 0, 2 * Math.PI);
-    context.closePath();
-    context.stroke();
+      context.beginPath();
+      context.arc(0, 0, (this.params.maxDistance / this.params.scale), 0, 2 * Math.PI);
+      context.closePath();
+      context.stroke();
+    }
 
     context.restore();
   }
 
   close () {
     this.gui.dispose();
+  }
+
+  setupGUI ({ canvas, pane, name }) {
+    this.gui = pane.addFolder({ title: `device ${name}` });
+    this.gui.addInput(this.params, 'offsetX', {
+      min: -(canvas.width / 2),
+      max: (canvas.width / 2),
+      presetKey: `offsetX-${name}`
+    });
+    this.gui.addInput(this.params, 'offsetY', {
+      min: -(canvas.height / 2),
+      max: (canvas.height / 2),
+      presetKey: `offsetY-${name}`
+    });
+    this.gui.addInput(this.params, 'scale', {
+      min: 1,
+      max: 100,
+      presetKey: `scale-${name}`
+    });
+    this.gui.addInput(this.params, 'rotation', {
+      min: -360,
+      max: 360,
+      presetKey: `rotation-${name}`
+    });
+    this.gui.addInput(this.params, 'minDistance', {
+      min: 0,
+      max: 10000,
+      presetKey: `minDistance-${name}`
+    });
+    this.gui.addInput(this.params, 'maxDistance', {
+      min: 0,
+      max: 10000,
+      presetKey: `maxDistance-${name}`
+    });
+    this.gui.addInput(this.params, 'pointSize', {
+      min: 0,
+      max: 20,
+      presetKey: `pointSize-${name}`
+    });
+    this.gui.addInput(this.params, 'debug', { presetKey: `debug-${name}` })
   }
 }

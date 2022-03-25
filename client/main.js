@@ -8,8 +8,8 @@ import { Pane } from 'tweakpane';
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
 
 const canvas = document.createElement('canvas');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = (window.innerWidth / 3);
+canvas.height = (window.innerHeight / 3);
 const context = canvas.getContext('2d');
 
 const pane = new Pane({ title: 'opts' });
@@ -41,6 +41,7 @@ pane.addButton({ title: 'add exclusion zone' }).on('click', () => {
   params.exclusionZones[`zone-${index}`] = {
     pos: { x: 0, y: 0 },
     dim: { x: 0.1, y: 0.1 },
+    debug: true,
   };
   folder.addInput(params.exclusionZones[`zone-${index}`], 'pos', {
     x: { min: -1, max: 1, step: 0.01 },
@@ -50,6 +51,7 @@ pane.addButton({ title: 'add exclusion zone' }).on('click', () => {
     x: { min: 0, max: 1, step: 0.01 },
     y: { min: 0, max: 1, step: 0.01 },
   });
+  folder.addInput(params.exclusionZones[`zone-${index}`], 'debug');
   folder.addButton({ title: 'remove' }).on('click', () => {
     delete params.exclusionZones[`zone-${index}`];
     folder.dispose();
@@ -83,7 +85,7 @@ const render = function () {
   fpsGraph.begin();
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  context.fillStyle = 'rgba(255, 255, 255, 0.15)';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
   for (const name in devices) {
@@ -92,7 +94,7 @@ const render = function () {
   }
 
   for (const zone in params.exclusionZones) {
-    const { pos, dim } = params.exclusionZones[zone];
+    const { pos, dim, debug } = params.exclusionZones[zone];
     context.fillStyle = 'white';
     context.fillRect(
       ((((pos.x + 1) * 0.5) - (dim.x * 0.5)) * canvas.width),
@@ -100,12 +102,14 @@ const render = function () {
       (dim.x * canvas.width),
       (dim.y * canvas.height)
     );
-    context.strokeRect(
-      ((((pos.x + 1) * 0.5) - (dim.x * 0.5)) * canvas.width),
-      ((((pos.y + 1) * 0.5) - (dim.y * 0.5)) * canvas.height),
-      (dim.x * canvas.width),
-      (dim.y * canvas.height)
-    );
+    if (debug) {
+      context.strokeRect(
+        ((((pos.x + 1) * 0.5) - (dim.x * 0.5)) * canvas.width),
+        ((((pos.y + 1) * 0.5) - (dim.y * 0.5)) * canvas.height),
+        (dim.x * canvas.width),
+        (dim.y * canvas.height)
+      );
+    }
   }
 
   time++;
