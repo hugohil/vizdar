@@ -77,14 +77,16 @@ const render = function () {
   process(context);
 
   blobs.forEach(b => {
-    context.strokeStyle = 'green';
-    context.lineWidth = 2;
-    context.strokeRect(
-      b.minx,
-      b.miny,
-      (b.maxx - b.minx),
-      (b.maxy - b.miny),
-    );
+    if (b.size() > 250) {
+      context.strokeStyle = 'green';
+      context.lineWidth = 2;
+      context.strokeRect(
+        b.minx,
+        b.miny,
+        (b.maxx - b.minx),
+        (b.maxy - b.miny),
+      );
+    }
   });
 
   time++;
@@ -107,6 +109,10 @@ class Blob {
     this.maxx = x;
     this.miny = y;
     this.maxy = y;
+  }
+
+  size () {
+    return ((this.maxx - this.minx) * (this.maxy - this.miny));
   }
 
   isNear (point) {
