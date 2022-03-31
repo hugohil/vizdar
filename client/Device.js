@@ -13,11 +13,12 @@ function lerp (value1, value2, amount) {
 export default class Device {
   constructor ({ name, canvas, pane }) {
     this.data = [];
+    this.prevData = [];
 
     this.params = {
       offsetX: 0,
       offsetY: 0,
-      scale: 50,
+      scale: 25,
       rotation: 0,
       minDistance: 500,
       maxDistance: 2500,
@@ -52,7 +53,7 @@ export default class Device {
       context.fillStyle = 'red';
       context.fillRect(-5, -5, 10, 10);
     }
-    context.fillStyle = 'black';
+    context.fillStyle = 'white';
 
     for (let i = (this.data.length - 1); i > 0 ; i--) {
       if (!this.data[i]) continue;
@@ -66,6 +67,7 @@ export default class Device {
     }
 
     if (this.params.debug) {
+      context.strokeStyle = 'white';
       context.beginPath();
       context.arc(0, 0, (this.params.minDistance / this.params.scale), 0, 2 * Math.PI);
       context.closePath();
