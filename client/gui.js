@@ -21,8 +21,9 @@ function setupGUI (params) {
     lineCount: 2,
   });
 
-  pane.addInput(params, 'threshold', { min: 0, max: 255 });
-  pane.addInput(params, 'blobRadius', { min: 0, max: 100 });
+  pane.addInput(params, 'brightness', { min: 0, max: 255 });
+  pane.addInput(params, 'distance', { min: 0, max: 100 });
+  pane.addInput(params, 'lifespan', { min: 0, max: 10, step: 0.1 });
 
   pane.addButton({ title: 'add exclusion zone' }).on('click', () => {
     const index = Object.keys(params.exclusionZones).length;

@@ -1,14 +1,4 @@
-import smoothish from 'smoothish';
-
-function d2r (deg) {
-  return deg * (Math.PI / 180);
-}
-
-function lerp (value1, value2, amount) {
-  amount = amount < 0 ? 0 : amount;
-  amount = amount > 1 ? 1 : amount;
-  return value1 + (value2 - value1) * amount;
-}
+import { d2r, lerp } from './utils';
 
 export default class Device {
   constructor ({ name, canvas, pane }) {
@@ -66,18 +56,28 @@ export default class Device {
       context.fillRect((x - (ps * 0.5)), (y - (ps * 0.5)), ps, ps);
     }
 
-    if (this.params.debug) {
-      context.strokeStyle = 'white';
-      context.beginPath();
-      context.arc(0, 0, (this.params.minDistance / this.params.scale), 0, 2 * Math.PI);
-      context.closePath();
-      context.stroke();
+    context.restore();
+  }
 
-      context.beginPath();
-      context.arc(0, 0, (this.params.maxDistance / this.params.scale), 0, 2 * Math.PI);
-      context.closePath();
-      context.stroke();
-    }
+  drawDebug (canvas, context) {
+    context.save();
+
+    context.translate(
+      (canvas.width / 2) + this.params.offsetX,
+      (canvas.height / 2) + this.params.offsetY
+    );
+    context.rotate(d2r(this.params.rotation));
+
+    context.strokeStyle = 'white';
+    context.beginPath();
+    context.arc(0, 0, (this.params.minDistance / this.params.scale), 0, 2 * Math.PI);
+    context.closePath();
+    context.stroke();
+
+    context.beginPath();
+    context.arc(0, 0, (this.params.maxDistance / this.params.scale), 0, 2 * Math.PI);
+    context.closePath();
+    context.stroke();
 
     context.restore();
   }

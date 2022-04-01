@@ -1,7 +1,9 @@
 import { io } from 'socket.io-client';
 
+import { dist } from './utils';
 import setupGUI from './gui.js';
 import Device from './Device';
+import Blob from './Blob';
 
 const socket = io('http://127.0.0.1:3000');
 
@@ -13,8 +15,9 @@ canvas.height = (window.innerHeight / downscale);
 const context = canvas.getContext('2d');
 
 const params = {
-  threshold: 120,
-  blobRadius: 50,
+  brightness: 120,
+  distance: 50,
+  lifespan: 2.5,
   exclusionZones: {},
 };
 
@@ -46,7 +49,8 @@ let time = 0;
 const render = function () {
   fpsGraph.begin();
 
-  context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = 'rgba(0, 0, 0, 1)';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
   for (const name in devices) {
@@ -89,47 +93,19 @@ const render = function () {
     }
   });
 
+  for (const name in devices) {
+    if (!devices[name]) continue;
+    devices[name].params.debug && devices[name].drawDebug(canvas, context);
+  }
+
   time++;
   fpsGraph.end();
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
 
-function dist (x1, y1, x2, y2) {
-  const a = (x1 - x2);
-  const b = (y1 - y2);
-
-  return Math.sqrt((a * a) + (b * b));
-};
-
 let blobs = [];
-class Blob {
-  constructor (x, y) {
-    this.minx = x;
-    this.maxx = x;
-    this.miny = y;
-    this.maxy = y;
-  }
 
-  size () {
-    return ((this.maxx - this.minx) * (this.maxy - this.miny));
-  }
-
-  isNear (point) {
-    const cx = ((this.minx + this.maxx) / 2);
-    const cy = ((this.miny + this.maxy) / 2);
-
-    return dist(cx, cy, point.x, point.y) <= params.blobRadius;
-  }
-
-  addPoint(point) {
-    this.minx = Math.min(this.minx, point.x);
-    this.maxx = Math.max(this.maxx, point.x);
-
-    this.miny = Math.min(this.miny, point.y);
-    this.maxy = Math.max(this.maxy, point.y);
-  }
-}
 
 function process () {
   blobs = [];
@@ -140,7 +116,7 @@ function process () {
   for (let i = 0; i < rgba.length; i += 4) {
     const brightness = (0.34 * rgba[i]) + (0.5 * rgba[i + 1]) + (0.16 * rgba[i + 2]);
 
-    if (brightness >= params.threshold) {
+    if (brightness >= params.brightness) {
       const pos = {
         x: (i / 4) % canvas.width,
         y: Math.floor((i / 4) / canvas.width)
@@ -151,7 +127,7 @@ function process () {
       for (let j = 0; j < blobs.length; j++) {
         const b = blobs[j];
 
-        if (b.isNear(pos)) {
+        if (b.isNear(pos, params.distance)) {
           found = true;
           b.addPoint(pos);
           break;
