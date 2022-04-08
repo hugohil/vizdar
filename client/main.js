@@ -1,14 +1,10 @@
-import { io } from 'socket.io-client';
-
 import { dist } from './utils';
+
+import realtime from './realtime.js';
 import setupGUI from './gui.js';
-import Device from './Device';
 import Blob from './Blob';
 
-const socket = io('http://127.0.0.1:3000');
-
 const downscale = 4;
-
 const canvas = document.createElement('canvas');
 canvas.width = (window.innerWidth / downscale);
 canvas.height = (window.innerHeight / downscale);
@@ -24,26 +20,8 @@ const params = {
 const { pane, fpsGraph, preset } = setupGUI(params);
 
 let devices = {};
-socket.on('register', (name) => {
-  console.log(`register ${name}`);
-  devices[name] = new Device({name, canvas, pane});
-  try { pane.importPreset(JSON.parse(preset)); } catch (ignore) {}
-});
-socket.on('unregister', (name) => {
-  console.log(`unregister ${name}`);
-  if (devices[name]) {
-    devices[name].close();
-    delete devices[name];
-  }
-});
-socket.on('lidar-data', ({ name, data }) => {
-  if (!devices[name]) {
-    console.log(`register ${name}`);
-    devices[name] = new Device({name, canvas, pane});
-    try { pane.importPreset(JSON.parse(preset)); } catch (ignore) {}
-  }
-  devices[name].updateData(data);
-});
+
+const socket = realtime.create({ devices, canvas, pane });
 
 let time = 0;
 const render = function () {
@@ -92,6 +70,7 @@ const render = function () {
       );
     }
   });
+  socket.emit('send-positions', blobs);
 
   for (const name in devices) {
     if (!devices[name]) continue;
@@ -105,10 +84,32 @@ const render = function () {
 requestAnimationFrame(render);
 
 let blobs = [];
+let blobsInstant = [];
 
+function doBlobSnapshot (pos) {
+  let found = false;
+
+  for (let j = 0; j < blobsInstant.length; j++) {
+    const b = blobsInstant[j];
+
+    if (b.isNear(pos, params.distance)) {
+      found = true;
+      b.addPoint(pos);
+      break;
+    }
+  }
+
+  if (!found) {
+    let b = new Blob(pos.x, pos.y);
+    blobsInstant.push(b);
+  }
+
+  blobs = blobsInstant;
+}
 
 function process () {
   blobs = [];
+  blobsInstant = [];
 
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
   const rgba = imageData.data;
@@ -121,24 +122,7 @@ function process () {
         x: (i / 4) % canvas.width,
         y: Math.floor((i / 4) / canvas.width)
       };
-
-      let found = false;
-
-      for (let j = 0; j < blobs.length; j++) {
-        const b = blobs[j];
-
-        if (b.isNear(pos, params.distance)) {
-          found = true;
-          b.addPoint(pos);
-          break;
-        }
-      }
-
-      if (!found) {
-        let b = new Blob(pos.x, pos.y);
-        blobs.push(b);
-      }
-      // const d = dist(coords.x, coords.y, mb.x, mb.y);
+      doBlobSnapshot(pos);
     }
   }
 }

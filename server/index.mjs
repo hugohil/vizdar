@@ -30,6 +30,9 @@ io.on('connection', (socket) => {
     socket.on('data', (data) => {
       socket.broadcast.emit('lidar-data', { name, data });
     });
+    socket.on('send-positions', (data) => {
+      socket.broadcast.emit('vizualidar', { data });
+    });
   }
 });
 httpServer.listen(3000);
