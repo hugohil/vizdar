@@ -2,7 +2,10 @@ import { Pane } from 'tweakpane';
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
 
 function setupGUI (params) {
-  const pane = new Pane({ title: 'opts' });
+  const pane = new Pane({
+    title: 'opts',
+    container: document.querySelector('.sidebar')
+  });
   pane.registerPlugin(EssentialsPlugin);
 
   let preset = localStorage.getItem('preset');

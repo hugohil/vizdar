@@ -9,6 +9,7 @@ const canvas = document.createElement('canvas');
 canvas.width = (window.innerWidth / downscale);
 canvas.height = (window.innerHeight / downscale);
 const context = canvas.getContext('2d');
+document.querySelector('.main').appendChild(canvas);
 
 const params = {
   brightness: 120,
@@ -126,8 +127,6 @@ function process () {
     }
   }
 }
-
-document.body.appendChild(canvas);
 
 document.addEventListener('keypress', (e) => {
   if (e.key === 'g') {
