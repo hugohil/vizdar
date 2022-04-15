@@ -1,57 +1,53 @@
 import { Pane } from 'tweakpane';
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
 
-function setupGUI (params) {
+function setupGUI (params, canvas) {
   const pane = new Pane({
     title: 'opts',
     container: document.querySelector('.sidebar')
   });
   pane.registerPlugin(EssentialsPlugin);
 
-  let preset = localStorage.getItem('preset');
+  let preset = localStorage.getItem('vizdar-preset');
   try {
-    pane.importPreset(JSON.parse(preset));
+    const p = JSON.parse(preset);
+
+    pane.importPreset(p);
   } catch (ignore) {}
 
   const saveButton = pane.addButton({ title: 'Save'}).on('click', () => {
     preset = pane.exportPreset();
-    localStorage.setItem('preset', JSON.stringify(preset));
+    localStorage.setItem('vizdar-preset', JSON.stringify(preset));
   });
 
-  const fpsGraph = pane.addBlade({
+  const generalFolder = pane.addFolder({ title: 'general' });
+  const devicesFolder = pane.addFolder({ title: 'devices' });
+  const activeFolder = pane.addFolder({ title: 'activation zone' });
+
+  const fpsGraph = generalFolder.addBlade({
     view: 'fpsgraph',
     label: 'fpsgraph',
     lineCount: 2,
   });
 
-  pane.addInput(params, 'brightness', { min: 0, max: 255 });
-  pane.addInput(params, 'distance', { min: 0, max: 100 });
-  pane.addInput(params, 'lifespan', { min: 0, max: 10, step: 0.1 });
+  generalFolder.addInput(params, 'brightness', { min: 0, max: 255 });
+  generalFolder.addInput(params, 'distance', { min: 0, max: 100 });
+  generalFolder.addInput(params, 'lifespan', { min: 0, max: 10, step: 0.1 });
 
-  pane.addButton({ title: 'add exclusion zone' }).on('click', () => {
-    const index = Object.keys(params.exclusionZones).length;
-    const folder = pane.addFolder({ title: `exclusion zone ${index + 1}` });
-    params.exclusionZones[`zone-${index}`] = {
-      pos: { x: 0, y: 0 },
-      dim: { x: 0.1, y: 0.1 },
-      debug: true,
-    };
-    folder.addInput(params.exclusionZones[`zone-${index}`], 'pos', {
-      x: { min: -1, max: 1, step: 0.01 },
-      y: { min: -1, max: 1, step: 0.01 },
-    });
-    folder.addInput(params.exclusionZones[`zone-${index}`], 'dim', {
-      x: { min: 0, max: 1, step: 0.01 },
-      y: { min: 0, max: 1, step: 0.01 },
-    });
-    folder.addInput(params.exclusionZones[`zone-${index}`], 'debug');
-    folder.addButton({ title: 'remove' }).on('click', () => {
-      delete params.exclusionZones[`zone-${index}`];
-      folder.dispose();
-    });
+  activeFolder.addInput(params.activeZone, 'x', {
+    min: 0, max: canvas.width, step: 0.01, presetKey: `active-zone-x`
+  });
+  activeFolder.addInput(params.activeZone, 'y', {
+    min: 0, max: canvas.height, step: 0.01, presetKey: `active-zone-y `
+  });
+  activeFolder.addInput(params.activeZone, 'width', {
+    min: 0, max: canvas.width, step: 0.01, presetKey: `active-zone-width`
+  });
+  activeFolder.addInput(params.activeZone, 'height', {
+    min: 0, max: canvas.height, step: 0.01, presetKey: `active-zone-height`
   });
 
-  return { pane, fpsGraph, preset };
+  return { pane, devicesFolder, fpsGraph, preset };
 }
 
 export default setupGUI;

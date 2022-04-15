@@ -6,17 +6,23 @@ export default class Blob {
     this.maxx = x;
     this.miny = y;
     this.maxy = y;
+    this.center = this.getCenter();
   }
 
   size () {
     return ((this.maxx - this.minx) * (this.maxy - this.miny));
   }
 
-  isNear (point, distance) {
-    const cx = ((this.minx + this.maxx) / 2);
-    const cy = ((this.miny + this.maxy) / 2);
+  getCenter () {
+    const x = ((this.minx + this.maxx) / 2);
+    const y = ((this.miny + this.maxy) / 2);
+    return { x, y };
+  }
 
-    return dist(cx, cy, point.x, point.y) <= distance;
+  isNear (point, distance) {
+    const { x, y } = this.center;
+
+    return dist(x, y, point.x, point.y) <= distance;
   }
 
   addPoint(point) {
@@ -25,5 +31,7 @@ export default class Blob {
 
     this.miny = Math.min(this.miny, point.y);
     this.maxy = Math.max(this.maxy, point.y);
+
+    this.center = this.getCenter();
   }
 }

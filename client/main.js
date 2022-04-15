@@ -1,8 +1,9 @@
 import { dist } from './utils';
 
-import realtime from './realtime.js';
-import setupGUI from './gui.js';
+import { Realtime } from './Realtime';
+import setupGUI from './gui';
 import Blob from './Blob';
+import Zone from './Zone';
 
 const downscale = 4;
 const canvas = document.createElement('canvas');
@@ -15,14 +16,25 @@ const params = {
   brightness: 120,
   distance: 50,
   lifespan: 2.5,
-  exclusionZones: {},
+  activeZone: new Zone((canvas.width / 2), (canvas.height / 2), 100, 100),
+  // exclusionZones: {},
 };
 
-const { pane, fpsGraph, preset } = setupGUI(params);
+const { pane, devicesFolder, fpsGraph, preset } = setupGUI(params, canvas);
 
 let devices = {};
 
-const socket = realtime.create({ devices, canvas, pane });
+const realtime = new Realtime({ devices, canvas, pane, preset, devicesFolder });
+
+function drawZone ({x, y, width, height}, type) {
+  context.strokeStyle = (type === 'exclusion') ? 'green' : 'orange';
+  context.strokeRect(
+    x - (width * 0.5),
+    y - (height * 0.5),
+    width,
+    height
+  );
+}
 
 let time = 0;
 const render = function () {
@@ -37,27 +49,8 @@ const render = function () {
     devices[name].drawPointCloud(canvas, context);
   }
 
-  for (const zone in params.exclusionZones) {
-    const { pos, dim, debug } = params.exclusionZones[zone];
-    context.fillStyle = 'black';
-    context.fillRect(
-      ((((pos.x + 1) * 0.5) - (dim.x * 0.5)) * canvas.width),
-      ((((pos.y + 1) * 0.5) - (dim.y * 0.5)) * canvas.height),
-      (dim.x * canvas.width),
-      (dim.y * canvas.height)
-    );
-    if (debug) {
-      context.strokeStyle = 'white';
-      context.strokeRect(
-        ((((pos.x + 1) * 0.5) - (dim.x * 0.5)) * canvas.width),
-        ((((pos.y + 1) * 0.5) - (dim.y * 0.5)) * canvas.height),
-        (dim.x * canvas.width),
-        (dim.y * canvas.height)
-      );
-    }
-  }
-
   process(context);
+  realtime.send('blobs', { blobs });
 
   blobs.forEach(b => {
     if (b.size() > 250) {
@@ -71,12 +64,13 @@ const render = function () {
       );
     }
   });
-  socket.emit('send-positions', blobs);
 
   for (const name in devices) {
     if (!devices[name]) continue;
     devices[name].params.debug && devices[name].drawDebug(canvas, context);
   }
+
+  drawZone(params.activeZone, 'active');
 
   time++;
   fpsGraph.end();
@@ -123,13 +117,26 @@ function process () {
         x: (i / 4) % canvas.width,
         y: Math.floor((i / 4) / canvas.width)
       };
-      doBlobSnapshot(pos);
+      if (params.activeZone.isInside(pos)) {
+        doBlobSnapshot(pos);
+      }
     }
   }
+}
+
+function getNormBlobs () {
+  const res = [];
+  blobs.forEach(b => {
+    const normpos = b.center;
+    res.push(normpos)
+  });
+  return res;
 }
 
 document.addEventListener('keypress', (e) => {
   if (e.key === 'g') {
     pane.hidden = !pane.hidden;
+  } else if (e.key === 'b') {
+    console.log(getNormBlobs());
   }
 });

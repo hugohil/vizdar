@@ -1,7 +1,7 @@
 import { d2r, lerp } from './utils';
 
 export default class Device {
-  constructor ({ name, canvas, pane }) {
+  constructor ({ name, canvas, devicesFolder }) {
     this.data = [];
     this.prevData = [];
 
@@ -10,13 +10,13 @@ export default class Device {
       offsetY: 0,
       scale: 25,
       rotation: 0,
-      minDistance: 500,
-      maxDistance: 2500,
+      minDistance: 300, // in mm
+      maxDistance: 6000, // in mm
       pointSize: 2,
       debug: true,
     }
 
-    this.setupGUI({ canvas, pane, name });
+    this.setupGUI({ canvas, devicesFolder, name });
   }
 
   updateData (data) {
@@ -86,8 +86,8 @@ export default class Device {
     this.gui.dispose();
   }
 
-  setupGUI ({ canvas, pane, name }) {
-    this.gui = pane.addFolder({ title: `device ${name}` });
+  setupGUI ({ canvas, devicesFolder, name }) {
+    this.gui = devicesFolder.addFolder({ title: `device ${name}` });
     this.gui.addInput(this.params, 'offsetX', {
       min: -(canvas.width / 2),
       max: (canvas.width / 2),

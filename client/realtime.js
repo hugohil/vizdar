@@ -2,31 +2,44 @@ import { io } from 'socket.io-client';
 
 import Device from './Device';
 
-export default {
-  create ({ devices, canvas, pane }) {
-    const socket = io('http://127.0.0.1:3000');
+export class Realtime {
+  constructor ({
+    protocol='ws',
+    addr='127.0.0.1',
+    port='3000',
+    devices,
+    canvas,
+    pane,
+    preset,
+    devicesFolder
+  }) {
+    this.socket = io(`${protocol}://${addr}:${port}`);
 
-    socket.on('register', (name) => {
+    this.socket.on('register', (name) => {
       console.log(`register ${name}`);
-      devices[name] = new Device({name, canvas, pane});
+      devices[name] = new Device({name, canvas, devicesFolder});
       try { pane.importPreset(JSON.parse(preset)); } catch (ignore) {}
     });
-    socket.on('unregister', (name) => {
+
+    this.socket.on('unregister', (name) => {
       console.log(`unregister ${name}`);
       if (devices[name]) {
         devices[name].close();
         delete devices[name];
       }
     });
-    socket.on('lidar-data', ({ name, data }) => {
+
+    this.socket.on('lidar-data', ({ name, data }) => {
       if (!devices[name]) {
         console.log(`register ${name}`);
-        devices[name] = new Device({name, canvas, pane});
+        devices[name] = new Device({name, canvas, devicesFolder});
         try { pane.importPreset(JSON.parse(preset)); } catch (ignore) {}
       }
       devices[name].updateData(data);
     });
+  }
 
-    return socket;
+  send (event, data) {
+    this.socket.emit(event, data);
   }
 }
