@@ -50,10 +50,10 @@ const render = function () {
   }
 
   process(context);
-  realtime.send('blobs', { blobs });
+  realtime.send('blobs', getNormBlobs());
 
   blobs.forEach(b => {
-    if (b.size() > 250) {
+    if (b.getSize() > 250) {
       context.strokeStyle = 'green';
       context.lineWidth = 2;
       context.strokeRect(
@@ -125,12 +125,9 @@ function process () {
 }
 
 function getNormBlobs () {
-  const res = [];
-  blobs.forEach(b => {
-    const normpos = b.center;
-    res.push(normpos)
-  });
-  return res;
+  return blobs
+    .filter(b => b.getSize() > 250)
+    .map(b => params.activeZone.getNormPosInside(b.center));
 }
 
 document.addEventListener('keypress', (e) => {

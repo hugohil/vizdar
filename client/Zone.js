@@ -26,7 +26,10 @@ export default class Zone {
   }
 
   getNormPosInside (point) {
-    //...
+    return {
+      x: ((point.x - (this.x - (this.width / 2))) / this.width),
+      y: ((point.y - (this.y - (this.height / 2))) / this.height),
+    }
   }
 
   isInside (point) {

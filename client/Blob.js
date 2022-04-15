@@ -9,7 +9,7 @@ export default class Blob {
     this.center = this.getCenter();
   }
 
-  size () {
+  getSize () {
     return ((this.maxx - this.minx) * (this.maxy - this.miny));
   }
 
