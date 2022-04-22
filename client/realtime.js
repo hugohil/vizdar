@@ -17,6 +17,10 @@ export class Realtime {
 
     this.socket.on('register', (name) => {
       console.log(`register ${name}`);
+      if (devices[name]) {
+        devices[name].close();
+        delete devices[name];
+      }
       devices[name] = new Device({name, canvas, devicesFolder});
       try { pane.importPreset(JSON.parse(preset)); } catch (ignore) {}
     });
