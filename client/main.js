@@ -1,19 +1,21 @@
-import { dist } from './utils';
+import { dist, pointDist, isNear, getClosest } from './utils';
 
 import { Realtime } from './Realtime';
 import setupGUI from './gui';
 import Blob from './Blob';
 import Zone from './Zone';
 
-const downscale = 4;
+const downscale = 3;
 const canvas = document.createElement('canvas');
 canvas.width = (window.innerWidth / downscale);
 canvas.height = (window.innerHeight / downscale);
 const context = canvas.getContext('2d');
+context.font = '12px monospace';
 document.querySelector('.main').appendChild(canvas);
 
 const params = {
   brightness: 120,
+  minSize: 200,
   distance: 50,
   lifespan: 2.5,
   activeZone: new Zone((canvas.width / 2), (canvas.height / 2), 100, 100),
@@ -53,16 +55,16 @@ const render = function () {
   realtime.send('blobs', getNormBlobs());
 
   blobs.forEach(b => {
-    if (b.getSize() > 250) {
-      context.strokeStyle = 'green';
-      context.lineWidth = 2;
-      context.strokeRect(
-        b.minx,
-        b.miny,
-        (b.maxx - b.minx),
-        (b.maxy - b.miny),
-      );
-    }
+    context.strokeStyle = 'green';
+    context.lineWidth = 2;
+    const pos = b.getCenter();
+
+    // const dim = params.distance;
+    // context.strokeRect(pos.x - (dim / 2), pos.y - (dim / 2), dim, dim);
+    const dim = b.getDimensions();
+    context.strokeRect(pos.x - (dim.x / 2), pos.y - (dim.y / 2), dim.x, dim.y);
+    context.fillStyle = 'green';
+    context.fillText(b.id, pos.x, pos.y);
   });
 
   for (const name in devices) {
@@ -70,7 +72,7 @@ const render = function () {
     devices[name].params.debug && devices[name].drawDebug(canvas, context);
   }
 
-  drawZone(params.activeZone, 'active');
+  // drawZone(params.activeZone, 'active');
 
   time++;
   fpsGraph.end();
@@ -79,36 +81,13 @@ const render = function () {
 requestAnimationFrame(render);
 
 let blobs = [];
-let blobsInstant = [];
-
-function doBlobSnapshot (pos) {
-  let found = false;
-
-  for (let j = 0; j < blobsInstant.length; j++) {
-    const b = blobsInstant[j];
-
-    if (b.isNear(pos, params.distance)) {
-      found = true;
-      b.addPoint(pos);
-      break;
-    }
-  }
-
-  if (!found) {
-    let b = new Blob(pos.x, pos.y);
-    blobsInstant.push(b);
-  }
-
-  blobs = blobsInstant;
-}
+let blobCount = 0;
 
 function process () {
-  blobs = [];
-  blobsInstant = [];
-
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
   const rgba = imageData.data;
 
+  let points = [];
   for (let i = 0; i < rgba.length; i += 4) {
     const brightness = (0.34 * rgba[i]) + (0.5 * rgba[i + 1]) + (0.16 * rgba[i + 2]);
 
@@ -117,17 +96,81 @@ function process () {
         x: (i / 4) % canvas.width,
         y: Math.floor((i / 4) / canvas.width)
       };
-      if (params.activeZone.isInside(pos)) {
-        doBlobSnapshot(pos);
+      points.push(pos);
+    }
+  }
+  doBlobSnapshot(points);
+}
+
+function doBlobSnapshot (points) {
+  let blobsInstant = [];
+
+  for (let i = points.length - 1; i >= 0; i--) {
+    let found = false;
+    const pos = points[i];
+    for (let j = 0; j < blobsInstant.length; j++) {
+      const b = blobsInstant[j];
+
+      if (b.isNear(pos, params.distance)) {
+        found = true;
+        b.addPoint(pos);
+        break;
       }
     }
+
+    if (!found) {
+      let b = new Blob(pos.x, pos.y, 0, params.lifespan);
+      blobsInstant.push(b);
+    }
+  }
+
+  if (blobs.length < 1) {
+    blobsInstant.forEach(bi => {
+      const b = new Blob();
+      b.clone(bi);
+      // if (b.getSize() > (params.minSize * params.minSize)) {
+        b.id = blobCount++;
+        blobs.push(b);
+      // }
+    });
+  // } else if (blobs.length <= blobsInstant.length) {
+  } else {
+    blobs.forEach(b => {
+      let bestDistance = 10000;
+      let match = null;
+
+      blobsInstant.forEach(bi => {
+        const distance = pointDist(b.getCenter(), bi.getCenter());
+        if ((distance < bestDistance) && !bi.matched) {
+          bestDistance = distance;
+          bi.matched = true;
+          match = bi;
+        }
+      });
+
+      if (match) {
+        b.mergeBlob(match);
+      }
+
+    });
+
+    blobsInstant.forEach((bi, i) => {
+      if (!bi.matched) {
+        const b = new Blob();
+        b.clone(bi);
+        // if (b.getSize() > params.minSize) {
+          b.id = blobCount++;
+          blobs.push(b);
+        // }
+      } else {
+        // blobs.splice(i, 1);
+      }
+    });
   }
 }
 
 function getNormBlobs () {
-  return blobs
-    .filter(b => b.getSize() > 250)
-    .map(b => params.activeZone.getNormPosInside(b.center));
+  return blobs.map(b => params.activeZone.getNormPosInside(b.getCenter()));
 }
 
 document.addEventListener('keypress', (e) => {

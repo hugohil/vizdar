@@ -1,4 +1,4 @@
-import { d2r, lerp } from './utils';
+import { d2r, lerp, isNear, getClosest } from './utils';
 
 export default class Device {
   constructor ({ name, canvas, devicesFolder }) {
@@ -12,6 +12,7 @@ export default class Device {
       rotation: 0,
       minDistance: 300, // in mm
       maxDistance: 6000, // in mm
+      closest: 10,
       pointSize: 2,
       debug: true,
     }
@@ -20,12 +21,22 @@ export default class Device {
   }
 
   updateData (data) {
+    this.prevData = this.data;
     for (let i = data.length - 1; i >= 0; i--) {
-      if (data[i].d < this.params.minDistance || data[i].d > this.params.maxDistance) {
+      if (
+        (data[i].d < this.params.minDistance || data[i].d > this.params.maxDistance)
+        || this.isNoise(data[i])
+      ) {
         data.splice(i, 1);
       }
     }
     this.data = data;
+  }
+
+  isNoise (p) {
+    const closest = this.prevData.length && getClosest(this.prevData, p);
+    // return closest.distance > this.params.closest;
+    return false;
   }
 
   drawPointCloud (canvas, context) {
@@ -41,7 +52,7 @@ export default class Device {
 
     if (this.params.debug) {
       context.fillStyle = 'red';
-      context.fillRect(-5, -5, 10, 10);
+      context.fillRect(-1, -1, 2, 2);
     }
     context.fillStyle = 'white';
 

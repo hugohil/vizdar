@@ -32,6 +32,7 @@ function setupGUI (params, canvas) {
 
   generalFolder.addInput(params, 'brightness', { min: 0, max: 255 });
   generalFolder.addInput(params, 'distance', { min: 0, max: 100 });
+  generalFolder.addInput(params, 'minSize', { min: 0, max: 500 });
   generalFolder.addInput(params, 'lifespan', { min: 0, max: 10, step: 0.1 });
 
   activeFolder.addInput(params.activeZone, 'x', {
