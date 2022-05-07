@@ -52,16 +52,12 @@ const Sketch = (s) => {
     s.fill(0);
     s.ellipse(s.mouseX, s.mouseY, 10, 10);
   }
-
-  s.onData = (name, d) => {
-    s.data = d;
-  }
 }
 
 const sketch = new p5(Sketch);
 
 const realtime = new Realtime({
   onData: ({ name, data }) => {
-    sketch.onData(name, data);
+    sketch.data = data;
   }
 });
