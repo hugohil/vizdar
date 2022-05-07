@@ -1,5 +1,5 @@
 {
-  "version": "v0.0.1",
+  "version": "v0.0.2",
   "scripts": {
     "start:server": "node server/index.mjs",
     "start:client": "parcel client/index.html --no-cache"
@@ -9,6 +9,7 @@
     "compute-cosine-similarity": "^1.0.0",
     "express": "^4.17.3",
     "gammacv": "^0.5.2",
+    "p5": "^1.4.1",
     "point-in-polygon": "^1.1.0",
     "smoothish": "^1.0.0",
     "socket.io": "^4.4.1",
