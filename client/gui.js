@@ -1,5 +1,6 @@
 import { Pane } from 'tweakpane';
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
+import config from './config'
 
 function setupGUI (params, canvas) {
   const pane = new Pane({
@@ -8,7 +9,7 @@ function setupGUI (params, canvas) {
   });
   pane.registerPlugin(EssentialsPlugin);
 
-  let preset = localStorage.getItem('vizdar-preset');
+  let preset = config || localStorage.getItem('vizdar-preset');
   try {
     const p = JSON.parse(preset);
 
@@ -18,6 +19,7 @@ function setupGUI (params, canvas) {
   const saveButton = pane.addButton({ title: 'Save'}).on('click', () => {
     preset = pane.exportPreset();
     localStorage.setItem('vizdar-preset', JSON.stringify(preset));
+    navigator.clipboard.writeText(JSON.stringify(preset));
   });
 
   const generalFolder = pane.addFolder({ title: 'general' });
