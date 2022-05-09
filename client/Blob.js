@@ -1,4 +1,4 @@
-import { dist } from './utils';
+import { dist, lerp } from './utils';
 
 export default class Blob {
   constructor (x, y) {
@@ -26,11 +26,11 @@ export default class Blob {
   }
 
   addPoint(point) {
-    this.minx = Math.min(this.minx, point.x);
-    this.maxx = Math.max(this.maxx, point.x);
+    this.minx = lerp(this.minx, Math.min(this.minx, point.x), 0.5);
+    this.maxx = lerp(this.maxx, Math.max(this.maxx, point.x), 0.5);
 
-    this.miny = Math.min(this.miny, point.y);
-    this.maxy = Math.max(this.maxy, point.y);
+    this.miny = lerp(this.miny, Math.min(this.miny, point.y), 0.5);
+    this.maxy = lerp(this.maxy, Math.max(this.maxy, point.y), 0.5);
 
     this.center = this.getCenter();
   }
