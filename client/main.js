@@ -10,12 +10,13 @@ const canvas = document.createElement('canvas');
 canvas.width = (window.innerWidth / downscale);
 canvas.height = (window.innerHeight / downscale);
 const context = canvas.getContext('2d');
+context.imageSmoothingEnabled = false;
 document.querySelector('.main').appendChild(canvas);
 
 const params = {
   brightness: 120,
-  distance: 50,
-  lifespan: 2.5,
+  distance: 12,
+  minSize: 250,
   activeZone: new Zone((canvas.width / 2), (canvas.height / 2), 100, 100),
   // exclusionZones: {},
 };
@@ -36,7 +37,6 @@ function drawZone ({x, y, width, height}, type) {
   );
 }
 
-let time = 0;
 const render = function () {
   fpsGraph.begin();
 
@@ -62,6 +62,8 @@ const render = function () {
         (b.maxx - b.minx),
         (b.maxy - b.miny),
       );
+      context.fillStyle = 'green';
+      context.fillText(b.id, b.minx, (b.miny - 3));
     }
   });
 
@@ -72,20 +74,18 @@ const render = function () {
 
   drawZone(params.activeZone, 'active');
 
-  time++;
   fpsGraph.end();
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
 
 let blobs = [];
-let blobsInstant = [];
-
 function doBlobSnapshot (pos) {
   let found = false;
+  let blobsInstant = [];
 
-  for (let j = 0; j < blobsInstant.length; j++) {
-    const b = blobsInstant[j];
+  for (let j = 0; j < blobs.length; j++) {
+    const b = blobs[j];
 
     if (b.isNear(pos, params.distance)) {
       found = true;
@@ -95,16 +95,22 @@ function doBlobSnapshot (pos) {
   }
 
   if (!found) {
-    let b = new Blob(pos.x, pos.y);
+    const b = new Blob(pos.x, pos.y, blobs.length);
     blobsInstant.push(b);
   }
 
-  blobs = blobsInstant;
+  blobsInstant.forEach(b => {
+    blobs.push(b);
+  });
 }
 
 function process () {
+  // if (realtime.dataIn) {
+  //   for (let i = 0; i < blobs.length; i++) {
+  //     blobs[i].alive = false;
+  //   }
+  // }
   blobs = [];
-  blobsInstant = [];
 
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
   const rgba = imageData.data;
@@ -122,11 +128,18 @@ function process () {
       }
     }
   }
+
+  // for (let i = (blobs.length - 1); i >= 0; i--) {
+  //   if (!blobs[i].alive) {
+  //     blobs.splice(i, 1);
+  //   }
+  // }
+  // realtime.dataIn = false;
 }
 
 function getNormBlobs () {
   return blobs
-    .filter(b => b.getSize() > 250)
+    .filter(b => b.getSize() > params.minSize)
     .map(b => params.activeZone.getNormPosInside(b.center));
 }
 

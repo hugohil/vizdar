@@ -14,6 +14,7 @@ export class Realtime {
     devicesFolder
   }) {
     this.socket = io(`${protocol}://${addr}:${port}`);
+    this.dataIn = false;
 
     this.socket.on('register', (name) => {
       console.log(`register ${name}`);
@@ -40,6 +41,7 @@ export class Realtime {
         try { pane.importPreset(JSON.parse(preset)); } catch (ignore) {}
       }
       devices[name].updateData(data);
+      this.dataIn = true;
     });
   }
 

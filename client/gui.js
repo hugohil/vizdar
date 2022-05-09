@@ -34,19 +34,19 @@ function setupGUI (params, canvas) {
 
   generalFolder.addInput(params, 'brightness', { min: 0, max: 255 });
   generalFolder.addInput(params, 'distance', { min: 0, max: 100 });
-  generalFolder.addInput(params, 'lifespan', { min: 0, max: 10, step: 0.1 });
+  generalFolder.addInput(params, 'minSize', { min: 0, max: 500 });
 
   activeFolder.addInput(params.activeZone, 'x', {
-    min: 0, max: canvas.width, step: 0.01, presetKey: `active-zone-x`
+    min: 0, max: canvas.width, presetKey: `active-zone-x`
   });
   activeFolder.addInput(params.activeZone, 'y', {
-    min: 0, max: canvas.height, step: 0.01, presetKey: `active-zone-y `
+    min: 0, max: canvas.height, presetKey: `active-zone-y `
   });
   activeFolder.addInput(params.activeZone, 'width', {
-    min: 0, max: canvas.width, step: 0.01, presetKey: `active-zone-width`
+    min: 0, max: canvas.width, presetKey: `active-zone-width`
   });
   activeFolder.addInput(params.activeZone, 'height', {
-    min: 0, max: canvas.height, step: 0.01, presetKey: `active-zone-height`
+    min: 0, max: canvas.height, presetKey: `active-zone-height`
   });
 
   return { pane, devicesFolder, fpsGraph, preset };

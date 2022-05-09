@@ -1,12 +1,14 @@
 import { dist, lerp } from './utils';
 
 export default class Blob {
-  constructor (x, y) {
+  constructor (x, y, id) {
+    this.id = id;
     this.minx = x;
     this.maxx = x;
     this.miny = y;
     this.maxy = y;
     this.center = this.getCenter();
+    this.alive = true;
   }
 
   getSize () {
@@ -33,5 +35,6 @@ export default class Blob {
     this.maxy = lerp(this.maxy, Math.max(this.maxy, point.y), 0.5);
 
     this.center = this.getCenter();
+    this.alive = true;
   }
 }

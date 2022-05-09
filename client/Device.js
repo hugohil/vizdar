@@ -100,7 +100,7 @@ export default class Device {
     });
     this.gui.addInput(this.params, 'scale', {
       min: 1,
-      max: 100,
+      max: 200,
       presetKey: `scale-${name}`
     });
     this.gui.addInput(this.params, 'rotation', {
