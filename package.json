@@ -2,7 +2,8 @@
   "version": "v0.0.1",
   "scripts": {
     "start:server": "node server/index.mjs",
-    "start:client": "parcel client/index.html --no-cache"
+    "start:client": "parcel client/index.html --no-cache",
+    "build:client": "parcel build client/index.html"
   },
   "dependencies": {
     "@tweakpane/plugin-essentials": "^0.1.4",
