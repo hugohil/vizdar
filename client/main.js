@@ -17,6 +17,8 @@ const params = {
   brightness: 120,
   distance: 12,
   minSize: 250,
+  mirrorX: false,
+  mirrorY: false,
   activeZone: new Zone((canvas.width / 2), (canvas.height / 2), 100, 100),
   // exclusionZones: {},
 };
@@ -140,7 +142,12 @@ function process () {
 function getNormBlobs () {
   return blobs
     .filter(b => b.getSize() > params.minSize)
-    .map(b => params.activeZone.getNormPosInside(b.center));
+    .map(b => {
+      const center = params.activeZone.getNormPosInside(b.center);
+      params.mirrorX && (center.x = (1 - center.x));
+      params.mirrorY && (center.y = (1 - center.y));
+      return center;
+    });
 }
 
 document.addEventListener('keypress', (e) => {

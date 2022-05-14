@@ -10,6 +10,7 @@ function setupGUI (params, canvas) {
   pane.registerPlugin(EssentialsPlugin);
 
   let preset = config || localStorage.getItem('vizdar-preset');
+
   try {
     const p = JSON.parse(preset);
 
@@ -35,6 +36,8 @@ function setupGUI (params, canvas) {
   generalFolder.addInput(params, 'brightness', { min: 0, max: 255 });
   generalFolder.addInput(params, 'distance', { min: 0, max: 100 });
   generalFolder.addInput(params, 'minSize', { min: 0, max: 500 });
+  generalFolder.addInput(params, 'mirrorX');
+  generalFolder.addInput(params, 'mirrorY');
 
   activeFolder.addInput(params.activeZone, 'x', {
     min: 0, max: canvas.width, presetKey: `active-zone-x`
